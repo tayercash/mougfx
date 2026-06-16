@@ -1,0 +1,90 @@
+<div class="counterPage">
+    <div class="main_counter">
+        <div class="settings_container">
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="graphics">Graphics</h2>
+                        <p data-i18n="graphics_desc">Choose the best graphics for your device</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <select class="resolution_select" id="graphics" data-custom-select>
+                                <option value="1">Super Smooth</option>
+                                <option value="2">Smooth</option>
+                                <option value="3">Balanced</option>
+                                <option value="4">HD</option>
+                                <option value="5">HDR</option>
+                                <option value="6">Ultra-HDR</option>
+                            </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="lobby_graphics">Lobby Graphics</h2>
+                        <p data-i18n="lobby_graphics_desc">Choose the best graphics for your device</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <select class="resolution_select" id="lobby_graphics" data-custom-select>
+                                <option value="1">Super Smooth</option>
+                                <option value="2">Smooth</option>
+                                <option value="3">Balanced</option>
+                                <option value="4">HD</option>
+                                <option value="5">HDR</option>
+                                <option value="6">Ultra-HDR</option>
+                            </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="fps">FPS</h2>
+                        <p data-i18n="fps_desc">Unlock Maximum FPS limit</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <select class="resolution_select" id="fps" data-custom-select>
+                                <option value="4">30FPS</option>
+                                <option value="5">40FPS</option>
+                                <option value="6">60FPS</option>
+                                <option value="7">90FPS</option>
+                                <option value="8">120FPS</option>
+                            </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="styles">Styles</h2>
+                        <p data-i18n="styles_desc">Choose your favorite color filter</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <select class="resolution_select" id="style" data-custom-select>
+                                <option value="1">Classic</option>
+                                <option value="2">Colorful</option>
+                                <option value="3">Realistic</option>
+                                <option value="4">Soft</option>
+                                <option value="5">Movie</option>
+                            </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a class="mou_btn apply_btn" onclick="apply_settings()">
+                <span class="btn_text" data-i18n="apply_settings">Apply Settings</span>
+            </a>
+        </div>
+
+    </div>
+</div>
+<script>
+    load_counter_page();
+</script>

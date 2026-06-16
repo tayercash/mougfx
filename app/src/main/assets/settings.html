@@ -1,0 +1,121 @@
+<div class="settingsPage">
+    <div class="main_counter">
+        <div class="settings_container">
+            <div class="full_setting_container">
+                <div class="setting_container" style="display:block;text-align:center">
+                    <h2 style="margin:0;padding:0.5rem" data-i18n="settings_title">Settings</h2>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="settings_language">Language</h2>
+                        <p data-i18n="settings_language_desc">Select app language</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <select id="lang_select" data-custom-select onchange="switchLanguage(this.value)">
+                            <option value="en">English</option>
+                            <option value="ar">العربية</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="settings_version">App Version</h2>
+                        <p data-i18n="settings_version_desc">Mou GFX version info</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <span class="app_version" style="color:#b5b5b5">v1.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="settings_autoload">Auto Load</h2>
+                        <p data-i18n="settings_autoload_desc">Auto-load active.sav on start</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <label class="switch">
+                            <input type="checkbox" id="autoload_toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="settings_root_mode">Root Mode</h2>
+                        <p data-i18n="settings_root_mode_desc">Use Root (Magisk) for file access</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <label class="switch">
+                            <input type="checkbox" id="root_toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="settings_launch_game">Launch Game</h2>
+                        <p data-i18n="settings_launch_game_desc">Open PUBG Mobile directly</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <a class="mou_btn" onclick="launch_game_from_settings()" style="padding:0.5rem 1rem">
+                            <span class="btn_text" data-i18n="settings_launch_btn">Launch</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions" style="flex-direction:column;gap:0.5rem;padding-top:1.5rem">
+            <a class="mou_btn apply_btn" onclick="reset_all_settings()" style="background:var(--colorDanger, #e74c3c)">
+                <span class="btn_text" data-i18n="settings_reset_all">Reset All Settings</span>
+            </a>
+            <a class="mou_btn apply_btn" onclick="share_app_from_settings()" style="background:var(--main_background)">
+                <span class="btn_text" data-i18n="share_app">Share App</span>
+            </a>
+        </div>
+    </div>
+</div>
+<script>
+function load_settings_page() {
+    if (typeof mouscripts !== "undefined") {
+        document.getElementById('lang_select').value = current_lang;
+    }
+}
+function launch_game_from_settings() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.launchGame();
+    }
+}
+function share_app_from_settings() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.share_text_to_apps(
+            __('settings_share_title'),
+            __('settings_share_text')
+        );
+    }
+}
+function reset_all_settings() {
+    if (confirm(__('settings_reset_confirm'))) {
+        if (typeof mouscripts !== "undefined") {
+            mouscripts.showToast(__('settings_reset_done'));
+        }
+        document.getElementById('autoload_toggle').checked = true;
+        document.getElementById('root_toggle').checked = true;
+    }
+}
+load_settings_page();
+</script>

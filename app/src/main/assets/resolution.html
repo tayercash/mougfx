@@ -1,0 +1,78 @@
+<div class="counterPage">
+    <div id="overlay_permission_banner" style="display:none; padding:20px; text-align:center; margin:20px;">
+        <div style="background:#1a1a2e; border:2px solid #E53935; border-radius:12px; padding:30px;">
+            <div style="font-size:48px; margin-bottom:16px;">⚠️</div>
+            <h2 style="color:#E53935; margin-bottom:12px;" data-i18n="overlay_required">صلاحية الظهور فوق التطبيقات مطلوبة</h2>
+            <p style="color:#aaa; margin-bottom:24px; font-size:14px; line-height:1.6;" data-i18n="overlay_desc">يحتاج التطبيق صلاحية "الظهور فوق التطبيقات" لعرض لوحة المنظور العائمة. من فضلك فعّل الخاصية من الإعدادات.</p>
+            <a class="mou_btn apply_btn" onclick="requestOverlayAndReload()" style="display:inline-flex; margin:0 auto;">
+                <span class="btn_text" data-i18n="open_overlay_settings">فتح الإعدادات</span>
+            </a>
+        </div>
+    </div>
+    <div id="resolution_content">
+        <div class="main_counter">
+            <div class="settings_container">
+
+                <div class="full_setting_container">
+                    <div class="setting_container">
+                        <div class="setting_data">
+                            <h2 data-i18n="resolution">Resolution</h2>
+                            <p data-i18n="resolution_desc">Set optimal resolution for the game</p>
+                        </div>
+                        <div class="setting_input_container">
+                            <select class="resolution_select" id="resolution_select" data-custom-select>
+                                    <option value="Default">Default</option>
+                                    <option value="1440x1080">1440x1080(ipad)</option>
+                                    <option value="1920x1440">1920x1440(ipad)</option>
+                                    <option value="768x432">768x432</option>
+                                    <option value="960x540">960x540</option>
+                                    <option value="1024x576">1024x576</option>
+                                    <option value="1152x648">1152x648</option>
+                                    <option value="1280x800">1280x800(HD)</option>
+                                    <option value="1366x768">1366x768</option>
+                                    <option value="1440x1080">1440x1080(HD+)</option>
+                                    <option value="1600x900">1600x900</option>
+                                    <option value="1920x1080">1920x1080</option>
+                                    <option value="2160x1080">2160x1080(FHD+)</option>
+                                    <option value="2560x1440">2560x1440</option>
+                                </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="actions">
+                <a class="mou_btn apply_btn" data-openpopup="resolution_popup">
+                    <span class="btn_text" data-i18n="apply_perspective">تطبيق المنظور</span>
+                </a>
+                <a class="mou_btn apply_btn" onclick="reset_reselution()">
+                    <span class="btn_text" data-i18n="reset_resolution">Reset resolution</span>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+function checkOverlayPermission() {
+    var banner = document.getElementById('overlay_permission_banner');
+    var content = document.getElementById('resolution_content');
+    if (typeof mouscripts !== "undefined" && mouscripts.canDrawOverlays()) {
+        banner.style.display = 'none';
+        content.style.display = 'block';
+    } else {
+        banner.style.display = 'block';
+        content.style.display = 'none';
+    }
+}
+function requestOverlayAndReload() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.requestOverlayPermission();
+    }
+}
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) checkOverlayPermission();
+});
+setTimeout(checkOverlayPermission, 200);
+</script>

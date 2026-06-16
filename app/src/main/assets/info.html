@@ -1,0 +1,37 @@
+<div class="container info_container">
+    <div class="app_logo_container">
+        <img src="files/images/logo.png" alt="" srcset="">
+    </div>
+    <h1 class="app_name">Mou GFX<span class="app_version"> v1.0</span></h1>
+    <div class="info_btns">
+        <a class="mou_btn profile_btn" onclick="RateApp()">
+            <i class="fas fa-star"></i>
+            <span class="btn_text" data-i18n="rate_app">Rate App</span>
+        </a>
+        <a class="mou_btn profile_btn" onclick="ShareApp()">
+            <i class="fas fa-share"></i>
+            <span class="btn_text" data-i18n="share_app">Share App</span>
+        </a>
+        <!-- <a class="mou_btn profile_btn remove_ads" onclick="remove_ads()">
+            <i class="fas fa-ad"></i>
+            <span class="btn_text">Remove Ads</span>
+        </a> -->
+    </div>
+</div>
+<script>
+    function RateApp() {
+        if (typeof mouscripts !== "undefined") {
+            mouscripts.open_external_link("https://play.google.com/store/apps/details?id=" + mouscripts.GetPackageName());
+        }
+    }
+    function ShareApp() {
+        if (typeof mouscripts !== "undefined") {
+            mouscripts.share_text_to_apps("try Money Counter App", "try Money Counter App\n\nDownload Now For Free\nhttps://play.google.com/store/apps/details?id=" + mouscripts.GetPackageName());
+        }
+    }
+    function remove_ads() {
+        if (typeof mouscripts !== "undefined") {
+            mouscripts.remove_ads();
+        }
+    }
+</script>

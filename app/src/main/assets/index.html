@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/x-icon" href="files/images/favicon.ico">
+
+    <title>Money Counter</title>
+    <link rel="stylesheet" href="files/fonts/noto-sans-arabic/font.css">
+    <link rel="stylesheet" href="files/fonts/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="files/css/popup.css">
+    <link rel="stylesheet" href="files/css/main.css">
+    <link rel="stylesheet" href="files/css/navigation.css">
+    <link rel="stylesheet" href="files/css/app.css">
+</head>
+
+<body>
+    <div class="mou_background"></div>
+    <div class="full_app_loader"></div>
+
+
+    <div class="mou_popup mou_bottom_pop" id="counter_data_popup">
+        <div class="mou_popup_container mou_box_shadow">
+            <div class="mou_popup_header">
+                <span class="mou_pop_up_title"><span class="popup_counter_total"></span></span>
+                <span class="close_popup_btn" data-dismisspopup><i class="far fa-times fa-lg"></i></span>
+            </div>
+            <div class="mou_popup_body">
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="mou_popup mou_bottom_pop" id="resolution_popup">
+        <div class="mou_popup_container mou_box_shadow">
+            <div class="mou_popup_header">
+                <span class="mou_pop_up_title" data-i18n="apply_perspective">تطبيق المنظور</span>
+                <span class="close_popup_btn" data-dismisspopup><i class="far fa-times fa-lg"></i></span>
+            </div>
+            <div class="mou_popup_body" style="padding:1rem;display:flex;flex-direction:column;gap:0.75rem">
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px" data-i18n="width">Width</label>
+                    <input type="number" lang="en" id="persp_width" class="editor-input" value="1920" min="320" max="3840" style="width:100%">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px" data-i18n="height">Height</label>
+                    <input type="number" lang="en" id="persp_height" class="editor-input" value="1080" min="240" max="2160" style="width:100%">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px" data-i18n="dpi">DPI</label>
+                    <input type="number" lang="en" id="persp_dpi" class="editor-input" value="320" min="120" max="640" style="width:100%">
+                </div>
+                <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+                    <a class="mou_btn apply_btn" onclick="apply_perspective_from_popup()" style="flex:1">
+                        <span class="btn_text" data-i18n="apply">تطبيق</span>
+                    </a>
+                    <a class="mou_btn apply_btn" onclick="reset_perspective_and_close()" style="flex:1;background:var(--bg-dangr-color)">
+                        <span class="btn_text" data-i18n="close_perspective">إغلاق المنظور</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="full_view">
+        <div class="full_view_container" id="content">
+
+        </div>
+    </div>
+
+
+    <div class="navigation_container">
+        <div class="navigation">
+            <ul>
+                <li class="list active">
+                    <a data-full_iframe_target_url="gfx.html">
+                        <span class="icon">
+                            <i class="far fa-cogs"></i>
+                        </span>
+                        <span class="text">GFX</span>
+                    </a>
+                </li>
+                <li class="list">
+                    <a data-full_iframe_target_url="resolution.html">
+                        <span class="icon">
+                            <i class="fas fa-expand"></i>
+                        </span>
+                        <span class="text">Resolution</span>
+                    </a>
+                </li>
+                <li class="list">
+                    <a data-full_iframe_target_url="editor.html">
+                        <span class="icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </span>
+                        <span class="text">Advanced</span>
+                    </a>
+                </li>
+                <li class="list">
+                    <a data-full_iframe_target_url="settings.html">
+                        <span class="icon">
+                            <i class="fas fa-cog"></i>
+                        </span>
+                        <span class="text">Settings</span>
+                    </a>
+                </li>
+                <li class="list">
+                    <a data-full_iframe_target_url="info.html">
+                        <span class="icon">
+                            <i class="fab fa-android"></i>
+                        </span>
+                        <span class="text">Info</span>
+                    </a>
+                </li>
+                <span class="indicator"></span>
+            </ul>
+        </div>
+    </div>
+
+    <script src="files/js/jquery.min.js"></script>
+    <script src="files/js/jquery-ui.min.js"></script>
+    <script src="files/js/popup.js"></script>
+    <script src="files/js/main.js"></script>
+    <script src="files/js/index.js"></script>
+    <script src="files/js/navigation.js"></script>
+    <script src="files/js/custom-select.js"></script>
+    <script src="files/js/app.js"></script>
+</body>
+
+</html>
