@@ -67,6 +67,39 @@
             <div class="full_setting_container">
                 <div class="setting_container">
                     <div class="setting_data">
+                        <h2 data-i18n="settings_countdown">مدة العداد</h2>
+                        <p data-i18n="settings_countdown_desc">مدة العد التنازلي للمنظور (بالثواني)</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <select id="countdown_select" data-custom-select>
+                            <option value="3">3 ثواني</option>
+                            <option value="5" selected>5 ثواني</option>
+                            <option value="10">10 ثواني</option>
+                            <option value="15">15 ثواني</option>
+                            <option value="30">30 ثواني</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="settings_countdown_disable">إيقاف العداد</h2>
+                        <p data-i18n="settings_countdown_disable_desc">إلغاء العد التنازلي التلقائي (إعادة يدوية)</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <label class="switch">
+                            <input type="checkbox" id="countdown_disable_toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
                         <h2 data-i18n="settings_launch_game">Launch Game</h2>
                         <p data-i18n="settings_launch_game_desc">Open PUBG Mobile directly</p>
                     </div>
@@ -93,6 +126,9 @@
 function load_settings_page() {
     if (typeof mouscripts !== "undefined") {
         document.getElementById('lang_select').value = current_lang;
+        var cd = mouscripts.getCountdownDuration();
+        document.getElementById('countdown_select').value = cd.toString();
+        document.getElementById('countdown_disable_toggle').checked = !mouscripts.isCountdownEnabled();
     }
 }
 function launch_game_from_settings() {
@@ -111,11 +147,25 @@ function share_app_from_settings() {
 function reset_all_settings() {
     if (confirm(__('settings_reset_confirm'))) {
         if (typeof mouscripts !== "undefined") {
+            mouscripts.setCountdownDuration(5);
+            mouscripts.setCountdownEnabled(true);
+            document.getElementById('countdown_select').value = '5';
+            document.getElementById('countdown_disable_toggle').checked = false;
             mouscripts.showToast(__('settings_reset_done'));
         }
         document.getElementById('autoload_toggle').checked = true;
         document.getElementById('root_toggle').checked = true;
     }
 }
+$(document).on('change', '#countdown_select', function() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.setCountdownDuration(parseInt($(this).val()));
+    }
+});
+$(document).on('change', '#countdown_disable_toggle', function() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.setCountdownEnabled(!$(this).is(':checked'));
+    }
+});
 load_settings_page();
 </script>

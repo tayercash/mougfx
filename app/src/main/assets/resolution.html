@@ -11,7 +11,7 @@
     </div>
     <div id="resolution_content">
         <div class="main_counter">
-            <div class="settings_container">
+            <div class="settings_container" style="padding-bottom:130px">
 
                 <div class="full_setting_container">
                     <div class="setting_container">
@@ -40,15 +40,45 @@
                     </div>
                 </div>
 
+                <div class="full_setting_container">
+                    <div class="setting_container" style="flex-wrap:wrap;align-items:stretch;gap:12px;padding:1rem">
+                        <div style="width:100%">
+                            <h2 style="font-size:0.9rem;margin:0 0 4px 0;color:#E53935" data-i18n="apply_perspective">تطبيق المنظور</h2>
+                        </div>
+                        <div style="flex:1;min-width:120px">
+                            <label style="display:block;font-size:0.75rem;color:#aaa;margin-bottom:4px" data-i18n="width">Width</label>
+                            <input type="number" lang="en" id="persp_width" class="editor-input" value="1920" min="320" max="3840" style="width:100%">
+                        </div>
+                        <div style="flex:1;min-width:120px">
+                            <label style="display:block;font-size:0.75rem;color:#aaa;margin-bottom:4px" data-i18n="height">Height</label>
+                            <input type="number" lang="en" id="persp_height" class="editor-input" value="1080" min="240" max="2160" style="width:100%">
+                        </div>
+                        <div style="flex:1;min-width:120px">
+                            <label style="display:block;font-size:0.75rem;color:#aaa;margin-bottom:4px" data-i18n="dpi">DPI</label>
+                            <input type="number" lang="en" id="persp_dpi" class="editor-input" value="320" min="120" max="640" style="width:100%">
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="actions">
-                <a class="mou_btn apply_btn" data-openpopup="resolution_popup">
-                    <span class="btn_text" data-i18n="apply_perspective">تطبيق المنظور</span>
-                </a>
-                <a class="mou_btn apply_btn" onclick="reset_reselution()">
-                    <span class="btn_text" data-i18n="reset_resolution">Reset resolution</span>
-                </a>
+            <div class="actions" style="flex-direction:column;gap:0.5rem;background:#0a0a0a;padding:0.75rem;padding-bottom:calc(0.75rem + env(safe-area-inset-bottom, 0));position:sticky;bottom:0;z-index:10">
+                <div style="display:flex;gap:0.5rem">
+                    <a class="mou_btn apply_btn" onclick="apply_perspective_from_page()" style="flex:1">
+                        <span class="btn_text" data-i18n="apply">تطبيق</span>
+                    </a>
+                    <a class="mou_btn apply_btn" onclick="apply_perspective_and_launch()" style="flex:1">
+                        <span class="btn_text" data-i18n="apply_and_launch">تطبيق وفتح اللعبة</span>
+                    </a>
+                </div>
+                <div style="display:flex;gap:0.5rem">
+                    <a class="mou_btn apply_btn" onclick="reset_perspective_from_page()" style="flex:1;background:var(--bg-dangr-color)">
+                        <span class="btn_text" data-i18n="close_perspective">إغلاق المنظور</span>
+                    </a>
+                    <a class="mou_btn apply_btn" onclick="reset_reselution()" style="flex:1;background:var(--bg-dangr-color)">
+                        <span class="btn_text" data-i18n="reset_resolution">Reset resolution</span>
+                    </a>
+                </div>
             </div>
 
         </div>
@@ -71,6 +101,42 @@ function requestOverlayAndReload() {
         mouscripts.requestOverlayPermission();
     }
 }
+function apply_perspective_from_page() {
+    var w = parseInt(document.getElementById('persp_width').value);
+    var h = parseInt(document.getElementById('persp_height').value);
+    var dpi = parseInt(document.getElementById('persp_dpi').value);
+    if (isNaN(w) || isNaN(h) || isNaN(dpi)) return;
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.applyResolution(w, h, dpi);
+    }
+}
+function reset_perspective_from_page() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.hideAndResetPanel();
+    }
+}
+function apply_perspective_and_launch() {
+    var w = parseInt(document.getElementById('persp_width').value);
+    var h = parseInt(document.getElementById('persp_height').value);
+    var dpi = parseInt(document.getElementById('persp_dpi').value);
+    if (isNaN(w) || isNaN(h) || isNaN(dpi)) return;
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.applyResolution(w, h, dpi);
+    }
+}
+$(document).on('click', '[data-openpopup="resolution_popup"]', function () {
+    var sel = document.getElementById('resolution_select');
+    if (sel) {
+        var val = sel.value;
+        if (val && val !== 'Default') {
+            var parts = val.split('x');
+            if (parts.length === 2) {
+                document.getElementById('persp_width').value = parts[0];
+                document.getElementById('persp_height').value = parts[1];
+            }
+        }
+    }
+});
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) checkOverlayPermission();
 });

@@ -357,42 +357,37 @@ public class UnrealSaveEditor {
 
 
     public byte[] readFileViaShizuku(String fullPath) {
-        // 1. التأكد من أن الخدمة تعمل
         if (!Shizuku.pingBinder()) {
-            Log.e("SHIZUKU", "خدمة Shizuku لا تعمل أو الـ Binder لم يُستلم بعد.");
+            Log.e("SHIZUKU", "خدمة Shizuku لا تعمل");
             return null;
         }
-
-        // 2. التحقق من الصلاحية
         if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-            Log.e("SHIZUKU", "الصلاحية غير ممنوحة.");
-            // يمكنك استدعاء Shizuku.requestPermission(101) هنا
+            Log.e("SHIZUKU", "الصلاحية غير ممنوحة");
             return null;
         }
-
         try {
-            // Shizuku.newProcess يعيد Process عادي من جافا
-            java.lang.Process process = Shizuku.newProcess(new String[]{"cat", fullPath}, null, null);
-
+            java.lang.Process process = Shizuku.newProcess(new String[]{"sh", "-c", "cat \"" + fullPath + "\""}, null, null);
             InputStream is = process.getInputStream();
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-            byte[] temp = new byte[8192]; // بفر أكبر لسرعة القراءة
+            byte[] temp = new byte[8192];
             int nRead;
+            long deadline = System.currentTimeMillis() + 10000;
             while ((nRead = is.read(temp, 0, temp.length)) != -1) {
                 buffer.write(temp, 0, nRead);
+                if (System.currentTimeMillis() > deadline) {
+                    process.destroy();
+                    Log.e("SHIZUKU", "Shizuku cat timed out");
+                    return null;
+                }
             }
-
-            // انتظر انتهاء العملية وتأكد من نجاحها
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                Log.e("SHIZUKU", "فشل الأمر cat، كود الخروج: " + exitCode);
+                Log.e("SHIZUKU", "cat exit code: " + exitCode);
                 return null;
             }
-
             return buffer.toByteArray();
         } catch (Exception e) {
-            Log.e("SHIZUKU", "خطأ أثناء القراءة عبر Shizuku: " + e.getMessage());
+            Log.e("SHIZUKU", "Shizuku read error: " + e.getMessage());
             return null;
         }
     }

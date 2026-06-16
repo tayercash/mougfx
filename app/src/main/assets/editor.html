@@ -1,6 +1,6 @@
 <div class="editorPage">
     <div class="main_counter">
-        <div class="settings_container" id="editor_container">
+        <div class="settings_container" id="editor_container" style="padding-bottom:160px">
             <div class="full_setting_container">
                 <div class="setting_container" style="display:block;text-align:center">
                     <h2 style="margin:0;padding:0.5rem" data-i18n="editor_title">Advanced Editor</h2>
@@ -9,10 +9,15 @@
             </div>
             <div id="props_list"></div>
         </div>
-        <div class="actions">
-            <a class="mou_btn apply_btn" onclick="save_advanced()">
-                <span class="btn_text" data-i18n="editor_save">Save All Changes</span>
-            </a>
+        <div class="actions" style="flex-direction:column;gap:0.5rem;background:#0a0a0a;padding:0.75rem;padding-bottom:calc(0.75rem + env(safe-area-inset-bottom, 0));position:sticky;bottom:0;z-index:10">
+            <div style="display:flex;gap:0.5rem">
+                <a class="mou_btn apply_btn" onclick="save_advanced()" style="flex:1">
+                    <span class="btn_text" data-i18n="apply_settings">Apply Settings</span>
+                </a>
+                <a class="mou_btn apply_btn" onclick="save_advanced_and_launch()" style="flex:1">
+                    <span class="btn_text" data-i18n="apply_and_launch">Apply & Launch</span>
+                </a>
+            </div>
             <a class="mou_btn apply_btn" onclick="reload_advanced()" style="background:var(--main_background)">
                 <span class="btn_text" data-i18n="editor_reload">Reload</span>
             </a>
@@ -127,7 +132,7 @@ function load_editor_page() {
                 var displayVal = typeof val === 'string' ? val.replace(/"/g,'&quot;') : val;
                 inputHtml = '<input type="text" lang="en" class="editor-input" data-key="' + key + '" value="' + displayVal + '">';
             }
-            html += '<div class="full_setting_container"><div class="setting_container" style="flex-wrap:wrap;align-items:flex-start;gap:4px"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%"><h2 style="font-size:0.85rem;word-break:break-all;margin:0;line-height:1.4">' + key + '</h2><div style="flex-shrink:0;max-width:200px">' + inputHtml + '</div></div><p style="font-size:0.65rem;color:#b5b5b5;width:100%;margin:2px 0 0 0">' + desc + '</p></div></div>';
+            html += '<div class="full_setting_container"><div class="setting_container" style="flex-wrap:wrap;align-items:flex-start;gap:4px"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:24px;width:100%"><h2 style="font-size:0.85rem;word-break:break-all;margin:0;line-height:1.4;flex-shrink:0">' + key + '</h2><div style="flex-shrink:0;max-width:200px">' + inputHtml + '</div></div><p style="font-size:0.65rem;color:#b5b5b5;width:100%;margin:2px 0 0 0">' + desc + '</p></div></div>';
         }
         document.getElementById('props_list').innerHTML = html;
     }

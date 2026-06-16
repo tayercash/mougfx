@@ -55,6 +55,11 @@ var translations = {
         overlay_required: 'صلاحية الظهور فوق التطبيقات مطلوبة',
         overlay_desc: 'يحتاج التطبيق صلاحية "الظهور فوق التطبيقات" لعرض لوحة المنظور العائمة. من فضلك فعّل الخاصية من الإعدادات.',
         open_overlay_settings: 'فتح الإعدادات',
+        apply_and_launch: 'تطبيق وفتح اللعبة',
+        settings_countdown: 'مدة العداد',
+        settings_countdown_desc: 'مدة العد التنازلي للمنظور (بالثواني)',
+        settings_countdown_disable: 'إيقاف العداد',
+        settings_countdown_disable_desc: 'إلغاء العد التنازلي التلقائي (إعادة يدوية)',
     },
     en: {
         nav_gfx: 'GFX',
@@ -108,6 +113,11 @@ var translations = {
         overlay_required: 'Overlay permission required',
         overlay_desc: 'The app needs "Draw over other apps" permission to show the floating perspective panel. Please enable it in Settings.',
         open_overlay_settings: 'Open Settings',
+        apply_and_launch: 'Apply & Launch',
+        settings_countdown: 'Countdown Duration',
+        settings_countdown_desc: 'Countdown duration for perspective reset (seconds)',
+        settings_countdown_disable: 'Disable Countdown',
+        settings_countdown_disable_desc: 'Turn off auto-reset countdown (manual only)',
     }
 };
 
@@ -400,10 +410,8 @@ function iniToJSON(iniString) {
             let value = content.substring(firstEq + 1);
 
             if (key && value !== undefined) {
-                // السر هنا: إذا كانت القيمة تحتوي على "." نحتفظ بها كنص (String)
-                // وإذا كانت رقماً صحيحاً نحولها لـ Number
                 if (value.includes('.')) {
-                    result[currentSection][key] = value; // ستبقى "0.0" أو "1.5"
+                    result[currentSection][key] = value;
                 } else {
                     let numValue = parseInt(value);
                     result[currentSection][key] = isNaN(numValue) ? value : numValue;
@@ -411,8 +419,21 @@ function iniToJSON(iniString) {
             }
         }
     });
-
     return result;
+}
+
+function apply_settings_and_launch() {
+    apply_settings();
+    setTimeout(function() {
+        if (typeof mouscripts !== "undefined") mouscripts.launchGame();
+    }, 500);
+}
+
+function save_advanced_and_launch() {
+    save_advanced();
+    setTimeout(function() {
+        if (typeof mouscripts !== "undefined") mouscripts.launchGame();
+    }, 500);
 }
 function JsonToIni(jsonObject) {
     let iniString = "";

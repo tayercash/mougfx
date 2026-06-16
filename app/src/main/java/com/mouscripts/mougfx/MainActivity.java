@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -16,6 +17,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.text.InputType;
 import android.util.Base64;
@@ -43,6 +46,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -140,8 +144,13 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 
-        getWindow().setStatusBarColor(android.graphics.Color.BLACK);
-        getWindow().setNavigationBarColor(android.graphics.Color.BLACK);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        }
+        getWindow().setStatusBarColor(0xFF000000);
+        getWindow().setNavigationBarColor(0xFF000000);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
 
 
@@ -348,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
                         Shizuku.requestPermission(1001);
                         Toast.makeText(this, "افتح تطبيق Shizuku ومنح الصلاحية لهذا التطبيق", Toast.LENGTH_LONG).show();
                     });
-                    waitForShizukuPermission(3);
+                    waitForShizukuPermission(15);
                     if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                         Log.d(TAG, "محاولة القراءة عبر Shizuku بعد منح الصلاحية...");
                         try {
@@ -1068,13 +1077,14 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         if (Shizuku.pingBinder()) {
                             if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                                executeShellCommand(String.format("wm size %dx%d && wm density %d", w, h, dpi));
-                                Thread.sleep(500);
                                 String gamePackage = "com.tencent.ig";
                                 Intent launchIntent = getPackageManager().getLaunchIntentForPackage(gamePackage);
                                 if (launchIntent != null) {
                                     startActivity(launchIntent);
+                                    Thread.sleep(1500);
                                 }
+                                executeShellCommand(String.format("wm size %dx%d && wm density %d", w, h, dpi));
+                                Thread.sleep(500);
                                 runOnUiThread(() -> {
                                     showFloatingOverlay(w, h, dpi);
                                 });
@@ -1132,13 +1142,43 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        @JavascriptInterface
+        public int getCountdownDuration() {
+            SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
+            return prefs.getInt("countdown_seconds", 5);
+        }
+
+        @JavascriptInterface
+        public void setCountdownDuration(int seconds) {
+            SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
+            prefs.edit().putInt("countdown_seconds", Math.max(1, seconds)).apply();
+        }
+
+        @JavascriptInterface
+        public boolean isCountdownEnabled() {
+            SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
+            return prefs.getBoolean("countdown_enabled", true);
+        }
+
+        @JavascriptInterface
+        public void setCountdownEnabled(boolean enabled) {
+            SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
+            prefs.edit().putBoolean("countdown_enabled", enabled).apply();
+        }
+
     }
+
+    private Handler countdownHandler;
+    private int countdownSeconds;
+    private Button countdownBtn;
+    private Runnable countdownTask;
 
     private void showFloatingOverlay(int w, int h, int dpi) {
         hideFloatingOverlay();
+
         LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setGravity(Gravity.CENTER_VERTICAL);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setGravity(Gravity.CENTER);
         layout.setPadding(24, 16, 24, 16);
         layout.setElevation(20);
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
@@ -1146,37 +1186,57 @@ public class MainActivity extends AppCompatActivity {
         bg.setColor(0xDD000000);
         layout.setBackground(bg);
 
-        LinearLayout.LayoutParams textLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-
         TextView infoText = new TextView(this);
         infoText.setText(String.format(Locale.ENGLISH, "المنظور: %dx%d  DPI: %d", w, h, dpi));
         infoText.setTextColor(0xFFE53935);
         infoText.setTextSize(16);
-        infoText.setLayoutParams(textLp);
+        infoText.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams infoLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        infoLp.setMargins(0, 0, 0, 12);
+        infoText.setLayoutParams(infoLp);
 
-        Button resetBtn = new Button(this);
-        resetBtn.setText("إعادة");
-        resetBtn.setTextColor(0xFFFFFFFF);
-        resetBtn.setBackgroundColor(0xFFE53935);
-        resetBtn.setPadding(20, 8, 20, 8);
-        resetBtn.setAllCaps(false);
-        resetBtn.setTextSize(14);
-        LinearLayout.LayoutParams btnLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        btnLp.setMarginStart(20);
-        resetBtn.setLayoutParams(btnLp);
-        resetBtn.setOnClickListener(v -> {
+        countdownHandler = new Handler(Looper.getMainLooper());
+        SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
+        countdownSeconds = prefs.getInt("countdown_seconds", 5);
+        boolean countdownEnabled = prefs.getBoolean("countdown_enabled", true);
+
+        countdownBtn = new Button(this);
+        countdownBtn.setText(countdownEnabled ? "إنهاء (" + countdownSeconds + ")" : "إنهاء");
+        countdownBtn.setTextColor(0xFFFFFFFF);
+        countdownBtn.setBackgroundColor(0xFFE53935);
+        countdownBtn.setPadding(32, 12, 32, 12);
+        countdownBtn.setAllCaps(false);
+        countdownBtn.setTextSize(16);
+
+        if (countdownEnabled) {
+            countdownTask = new Runnable() {
+                @Override
+                public void run() {
+                    countdownSeconds--;
+                    if (countdownSeconds <= 0) {
+                        countdownBtn.setText("إنهاء (0)");
+                        resetResolution();
+                        hideFloatingOverlay();
+                    } else {
+                        countdownBtn.setText("إنهاء (" + countdownSeconds + ")");
+                        countdownHandler.postDelayed(this, 1000);
+                    }
+                }
+            };
+            countdownHandler.postDelayed(countdownTask, 1000);
+        } else {
+            countdownTask = null;
+        }
+
+        countdownBtn.setOnClickListener(v -> {
+            countdownHandler.removeCallbacks(countdownTask);
             resetResolution();
             hideFloatingOverlay();
         });
 
         layout.addView(infoText);
-        layout.addView(resetBtn);
+        layout.addView(countdownBtn);
 
         int layoutFlag;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -1235,6 +1295,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void hideFloatingOverlay() {
+        if (countdownHandler != null && countdownTask != null) {
+            countdownHandler.removeCallbacks(countdownTask);
+        }
         if (floatingPanelView != null) {
             try {
                 WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -1443,7 +1506,7 @@ public class MainActivity extends AppCompatActivity {
                 fos.write(data);
             }
             Process process = Shizuku.newProcess(new String[]{"sh", "-c",
-                "cp \"" + tempFile.getAbsolutePath() + "\" \"" + targetPath + "\" && chmod 644 \"" + targetPath + "\""}, null, null);
+                "cp \"" + tempFile.getAbsolutePath() + "\" \"" + targetPath + "\" 2>/dev/null; test -f \"" + targetPath + "\""}, null, null);
             if (!waitForProcess(process, 10)) {
                 Log.e(TAG, "Shizuku save timed out");
                 if (!tempFile.delete()) Log.w(TAG, "Failed to delete temp file");
