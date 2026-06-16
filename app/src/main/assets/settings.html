@@ -52,14 +52,16 @@
             <div class="full_setting_container">
                 <div class="setting_container">
                     <div class="setting_data">
-                        <h2 data-i18n="settings_root_mode">Root Mode</h2>
-                        <p data-i18n="settings_root_mode_desc">Use Root (Magisk) for file access</p>
+                        <h2 data-i18n="settings_access_method">طريقة الوصول</h2>
+                        <p data-i18n="settings_access_method_desc">اختيار طريقة الوصول للملفات</p>
                     </div>
                     <div class="setting_input_container">
-                        <label class="switch">
-                            <input type="checkbox" id="root_toggle" checked>
-                            <span class="slider"></span>
-                        </label>
+                        <select id="access_method_select" data-custom-select>
+                            <option value="auto" data-i18n="access_auto">تلقائي</option>
+                            <option value="root" data-i18n="access_root">Root</option>
+                            <option value="shizuku" data-i18n="access_shizuku">Shizuku</option>
+                            <option value="direct" data-i18n="access_direct">مباشر</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -72,11 +74,11 @@
                     </div>
                     <div class="setting_input_container">
                         <select id="countdown_select" data-custom-select>
-                            <option value="3">3 ثواني</option>
-                            <option value="5" selected>5 ثواني</option>
-                            <option value="10">10 ثواني</option>
-                            <option value="15">15 ثواني</option>
-                            <option value="30">30 ثواني</option>
+                            <option value="3" data-i18n="countdown_3s">3 ثواني</option>
+                            <option value="5" selected data-i18n="countdown_5s">5 ثواني</option>
+                            <option value="10" data-i18n="countdown_10s">10 ثواني</option>
+                            <option value="15" data-i18n="countdown_15s">15 ثواني</option>
+                            <option value="30" data-i18n="countdown_30s">30 ثواني</option>
                         </select>
                     </div>
                 </div>
@@ -110,6 +112,20 @@
                     </div>
                 </div>
             </div>
+
+            <div class="full_setting_container">
+                <div class="setting_container">
+                    <div class="setting_data">
+                        <h2 data-i18n="info_title">Info</h2>
+                        <p data-i18n="info_desc">App info and rate us</p>
+                    </div>
+                    <div class="setting_input_container">
+                        <a class="mou_btn" data-openpopup="info_popup" style="padding:0.5rem 1rem">
+                            <span class="btn_text" data-i18n="info_open">Info</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="actions" style="flex-direction:column;gap:0.5rem;padding-top:1.5rem">
@@ -129,6 +145,7 @@ function load_settings_page() {
         var cd = mouscripts.getCountdownDuration();
         document.getElementById('countdown_select').value = cd.toString();
         document.getElementById('countdown_disable_toggle').checked = !mouscripts.isCountdownEnabled();
+        document.getElementById('access_method_select').value = mouscripts.getAccessMethod();
     }
 }
 function launch_game_from_settings() {
@@ -149,12 +166,13 @@ function reset_all_settings() {
         if (typeof mouscripts !== "undefined") {
             mouscripts.setCountdownDuration(5);
             mouscripts.setCountdownEnabled(true);
+            mouscripts.setAccessMethod("auto");
             document.getElementById('countdown_select').value = '5';
             document.getElementById('countdown_disable_toggle').checked = false;
+            document.getElementById('access_method_select').value = 'auto';
             mouscripts.showToast(__('settings_reset_done'));
         }
         document.getElementById('autoload_toggle').checked = true;
-        document.getElementById('root_toggle').checked = true;
     }
 }
 $(document).on('change', '#countdown_select', function() {
@@ -165,6 +183,11 @@ $(document).on('change', '#countdown_select', function() {
 $(document).on('change', '#countdown_disable_toggle', function() {
     if (typeof mouscripts !== "undefined") {
         mouscripts.setCountdownEnabled(!$(this).is(':checked'));
+    }
+});
+$(document).on('change', '#access_method_select', function() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.setAccessMethod($(this).val());
     }
 });
 load_settings_page();

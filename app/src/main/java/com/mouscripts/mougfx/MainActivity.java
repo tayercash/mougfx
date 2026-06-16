@@ -23,6 +23,7 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -310,13 +311,26 @@ public class MainActivity extends AppCompatActivity {
         Shizuku.removeRequestPermissionResultListener(mPermissionReceiver);
         Shizuku.removeBinderReceivedListener(mBinderReceivedListener);
     }
+    private String getAccessMethod() {
+        SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
+        return prefs.getString("access_method", "auto");
+    }
+
+    private boolean shouldTryMethod(String method) {
+        String selected = getAccessMethod();
+        return selected.equals("auto") || selected.equals(method);
+    }
+
     private void tryAutoLoad() {
         new Thread(() -> {
             Log.d(TAG, "محاولة تحميل الملف: " + savePath);
             autoLoadAttempted = true;
 
+            String method = getAccessMethod();
+            Log.d(TAG, "طريقة الوصول المختارة: " + method);
+
             // 1. Root
-            if (isRootAvailable()) {
+            if (shouldTryMethod("root") && isRootAvailable()) {
                 Log.d(TAG, "محاولة القراءة عبر Root...");
                 runOnUiThread(() -> Toast.makeText(this, "جاري محاولة الوصول عبر Root...", Toast.LENGTH_SHORT).show());
                 byte[] rootData = readViaRoot(savePath);
@@ -332,34 +346,17 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> Toast.makeText(this,
                         "لم يتم الرد على طلب صلاحية Root. افتح Magick ومنح الصلاحية للتطبيق",
                         Toast.LENGTH_LONG).show());
+                    if (!method.equals("auto")) return;
                 }
             }
 
             // 2. Shizuku
-            boolean shizukuRunning = Shizuku.pingBinder();
-            if (shizukuRunning) {
-                shizukuBinderReceived = true;
-                if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "محاولة القراءة عبر Shizuku...");
-                    try {
-                        editor.load(savePath);
-                        if (editor.getFullFileData() != null) {
-                            showToastAndExit("تم التحميل عبر Shizuku");
-                            return;
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "فشل التحميل عبر Shizuku: " + e.getMessage());
-                    }
-                } else {
-                    Log.d(TAG, "طلب صلاحية Shizuku...");
-                    shizukuPermissionRequested = true;
-                    runOnUiThread(() -> {
-                        Shizuku.requestPermission(1001);
-                        Toast.makeText(this, "افتح تطبيق Shizuku ومنح الصلاحية لهذا التطبيق", Toast.LENGTH_LONG).show();
-                    });
-                    waitForShizukuPermission(15);
+            if (shouldTryMethod("shizuku")) {
+                boolean shizukuRunning = Shizuku.pingBinder();
+                if (shizukuRunning) {
+                    shizukuBinderReceived = true;
                     if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                        Log.d(TAG, "محاولة القراءة عبر Shizuku بعد منح الصلاحية...");
+                        Log.d(TAG, "محاولة القراءة عبر Shizuku...");
                         try {
                             editor.load(savePath);
                             if (editor.getFullFileData() != null) {
@@ -367,64 +364,89 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
                         } catch (Exception e) {
-                            Log.e(TAG, "Shizuku load after permission failed: " + e.getMessage());
+                            Log.e(TAG, "فشل التحميل عبر Shizuku: " + e.getMessage());
+                        }
+                    } else {
+                        Log.d(TAG, "طلب صلاحية Shizuku...");
+                        shizukuPermissionRequested = true;
+                        runOnUiThread(() -> {
+                            Shizuku.requestPermission(1001);
+                            Toast.makeText(this, "افتح تطبيق Shizuku ومنح الصلاحية لهذا التطبيق", Toast.LENGTH_LONG).show();
+                        });
+                        waitForShizukuPermission(15);
+                        if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                            Log.d(TAG, "محاولة القراءة عبر Shizuku بعد منح الصلاحية...");
+                            try {
+                                editor.load(savePath);
+                                if (editor.getFullFileData() != null) {
+                                    showToastAndExit("تم التحميل عبر Shizuku");
+                                    return;
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Shizuku load after permission failed: " + e.getMessage());
+                            }
                         }
                     }
                 }
-            }
 
-            // 3. Shizuku غير شغال - نحاول نشغله
-            if (!shizukuBinderReceived) {
-                runOnUiThread(() -> {
-                    Toast.makeText(this, "Shizuku غير شغال، جاري فتحه...", Toast.LENGTH_LONG).show();
-                    try {
-                        Intent intent = getPackageManager().getLaunchIntentForPackage("moe.shizuku.privileged.api");
-                        if (intent != null) startActivity(intent);
-                    } catch (Exception e) {
-                        Log.e(TAG, "فشل فتح Shizuku: " + e.getMessage());
-                    }
-                });
-                for (int i = 0; i < 6; i++) {
-                    try { Thread.sleep(500); } catch (InterruptedException ignored) {}
-                    if (Shizuku.pingBinder()) {
-                        shizukuBinderReceived = true;
-                        break;
-                    }
-                }
-                if (shizukuBinderReceived && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "محاولة القراءة عبر Shizuku بعد الانتظار...");
-                    try {
-                        editor.load(savePath);
-                        if (editor.getFullFileData() != null) {
-                            showToastAndExit("تم التحميل عبر Shizuku");
-                            return;
+                // Shizuku غير شغال - نحاول نشغله
+                if (!shizukuBinderReceived) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "Shizuku غير شغال، جاري فتحه...", Toast.LENGTH_LONG).show();
+                        try {
+                            Intent intent = getPackageManager().getLaunchIntentForPackage("moe.shizuku.privileged.api");
+                            if (intent != null) startActivity(intent);
+                        } catch (Exception e) {
+                            Log.e(TAG, "فشل فتح Shizuku: " + e.getMessage());
                         }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Shizuku load after wait failed: " + e.getMessage());
+                    });
+                    for (int i = 0; i < 6; i++) {
+                        try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+                        if (Shizuku.pingBinder()) {
+                            shizukuBinderReceived = true;
+                            break;
+                        }
+                    }
+                    if (shizukuBinderReceived && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                        Log.d(TAG, "محاولة القراءة عبر Shizuku بعد الانتظار...");
+                        try {
+                            editor.load(savePath);
+                            if (editor.getFullFileData() != null) {
+                                showToastAndExit("تم التحميل عبر Shizuku");
+                                return;
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Shizuku load after wait failed: " + e.getMessage());
+                        }
                     }
                 }
+                if (!method.equals("auto") && !method.equals("shizuku")) {}
+                else if (!method.equals("auto")) return;
             }
 
-            // 4. المسار المباشر
-            Log.d(TAG, "محاولة الوصول عبر المسار التقليدي: " + savePath);
-            File saveFile = new File(savePath);
-            if (saveFile.exists() && saveFile.canRead()) {
-                try (FileInputStream fis = new FileInputStream(saveFile)) {
-                    byte[] data = inputStreamToBytes(fis);
-                    editor.loadFromBytes(data);
-                    showToastAndExit("تم التحميل من المسار التلقائي");
-                    return;
-                } catch (Exception e) {
-                    Log.e(TAG, "فشل القراءة من المسار التقليدي رغم وجوده: " + e.getMessage());
+            // 3. المسار المباشر
+            if (shouldTryMethod("direct")) {
+                Log.d(TAG, "محاولة الوصول عبر المسار التقليدي: " + savePath);
+                File saveFile = new File(savePath);
+                if (saveFile.exists() && saveFile.canRead()) {
+                    try (FileInputStream fis = new FileInputStream(saveFile)) {
+                        byte[] data = inputStreamToBytes(fis);
+                        editor.loadFromBytes(data);
+                        showToastAndExit("تم التحميل من المسار التلقائي");
+                        return;
+                    } catch (Exception e) {
+                        Log.e(TAG, "فشل القراءة من المسار التقليدي رغم وجوده: " + e.getMessage());
+                    }
                 }
+                if (!method.equals("auto")) return;
             }
 
-            // 5. URI المخزن
+            // 4. URI المخزن
             if (currentFileUri != null && loadByUri(currentFileUri)) {
                 return;
             }
 
-            // 6. الاختيار اليدوي
+            // 5. الاختيار اليدوي
             runOnUiThread(this::showManualSelectionUI);
         }).start();
     }
@@ -563,18 +585,22 @@ public class MainActivity extends AppCompatActivity {
                     throw new IOException("لا توجد بيانات في الذاكرة للحفظ");
                 }
 
+                String method = getAccessMethod();
+                Log.d(TAG, "طريقة الحفظ المختارة: " + method);
+
                 // 1. Root
-                if (isRootAvailable()) {
+                if (shouldTryMethod("root") && isRootAvailable()) {
                     Log.d(TAG, "محاولة الحفظ عبر Root...");
                     if (saveViaRoot(data, savePath)) {
                         Log.d(TAG, "تم الحفظ عبر Root");
                         runOnUiThread(() -> Toast.makeText(this, "تم الحفظ بنجاح عبر Root", Toast.LENGTH_SHORT).show());
                         return;
                     }
+                    if (!method.equals("auto")) throw new IOException("فشل الحفظ عبر Root");
                 }
 
                 // 2. Shizuku
-                if (Shizuku.pingBinder()) {
+                if (shouldTryMethod("shizuku") && Shizuku.pingBinder()) {
                     if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                         Log.d(TAG, "محاولة الحفظ عبر Shizuku...");
                         if (saveViaShizukuPrivileged(data, savePath)) {
@@ -586,32 +612,35 @@ public class MainActivity extends AppCompatActivity {
                         shizukuPermissionRequested = true;
                         runOnUiThread(() -> Shizuku.requestPermission(1001));
                     }
+                    if (!method.equals("auto")) throw new IOException("فشل الحفظ عبر Shizuku");
                 }
 
-                // 3. URI (SAF)
-                if (currentFileUri != null) {
-                    Log.d(TAG, "محاولة الحفظ عبر الـ Uri...");
-                    try (OutputStream os = getContentResolver().openOutputStream(currentFileUri)) {
-                        editor.save(os);
-                        Log.d(TAG, "تم الحفظ عبر الـ Uri");
-                        runOnUiThread(() -> Toast.makeText(this, "تم الحفظ بنجاح!", Toast.LENGTH_SHORT).show());
-                        return;
-                    } catch (Exception e) {
-                        Log.e(TAG, "فشل الحفظ عبر URI: " + e.getMessage());
+                // 3. URI (SAF) & المسار المباشر
+                if (shouldTryMethod("direct")) {
+                    if (currentFileUri != null) {
+                        Log.d(TAG, "محاولة الحفظ عبر الـ Uri...");
+                        try (OutputStream os = getContentResolver().openOutputStream(currentFileUri)) {
+                            editor.save(os);
+                            Log.d(TAG, "تم الحفظ عبر الـ Uri");
+                            runOnUiThread(() -> Toast.makeText(this, "تم الحفظ بنجاح!", Toast.LENGTH_SHORT).show());
+                            return;
+                        } catch (Exception e) {
+                            Log.e(TAG, "فشل الحفظ عبر URI: " + e.getMessage());
+                        }
                     }
-                }
 
-                // 4. المسار المباشر
-                File file = new File(savePath);
-                if (file.exists() && file.canWrite()) {
-                    try (OutputStream os = new java.io.FileOutputStream(file)) {
-                        editor.save(os);
-                        Log.d(TAG, "تم الحفظ في المسار المباشر");
-                        runOnUiThread(() -> Toast.makeText(this, "تم الحفظ بنجاح!", Toast.LENGTH_SHORT).show());
-                        return;
-                    } catch (Exception e) {
-                        Log.e(TAG, "فشل الحفظ المباشر: " + e.getMessage());
+                    File file = new File(savePath);
+                    if (file.exists() && file.canWrite()) {
+                        try (OutputStream os = new java.io.FileOutputStream(file)) {
+                            editor.save(os);
+                            Log.d(TAG, "تم الحفظ في المسار المباشر");
+                            runOnUiThread(() -> Toast.makeText(this, "تم الحفظ بنجاح!", Toast.LENGTH_SHORT).show());
+                            return;
+                        } catch (Exception e) {
+                            Log.e(TAG, "فشل الحفظ المباشر: " + e.getMessage());
+                        }
                     }
+                    if (!method.equals("auto")) throw new IOException("فشل الحفظ عبر المسار المباشر");
                 }
 
                 // 5. فشل كل الطرق - فتح اختيار يدوي
@@ -1164,6 +1193,28 @@ public class MainActivity extends AppCompatActivity {
         public void setCountdownEnabled(boolean enabled) {
             SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
             prefs.edit().putBoolean("countdown_enabled", enabled).apply();
+        }
+
+        @JavascriptInterface
+        public String getScreenResolution() {
+            Display display = getWindowManager().getDefaultDisplay();
+            android.graphics.Point size = new android.graphics.Point();
+            display.getRealSize(size);
+            int realW = Math.max(size.x, size.y);
+            int realH = Math.min(size.x, size.y);
+            return "{\"width\":" + realW + ",\"height\":" + realH + "}";
+        }
+
+        @JavascriptInterface
+        public String getAccessMethod() {
+            SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
+            return prefs.getString("access_method", "auto");
+        }
+
+        @JavascriptInterface
+        public void setAccessMethod(String method) {
+            SharedPreferences prefs = getSharedPreferences("mougfx_prefs", MODE_PRIVATE);
+            prefs.edit().putString("access_method", method).apply();
         }
 
     }

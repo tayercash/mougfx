@@ -135,7 +135,11 @@ function initCustomSelects() {
             e.stopPropagation();
             const val = $(this).attr('data-value');
             const text = $(this).text();
-            $this.val(val).trigger('change');
+            $this.val(val);
+            $this.triggerHandler('change');
+            if ($this[0]) {
+                $this[0].dispatchEvent(new Event('change', { bubbles: true }));
+            }
             $trigger.text(text);
             $(this).addClass('selection').siblings().removeClass('selection');
             $mgSelect.removeClass('open');

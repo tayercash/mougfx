@@ -11,7 +11,7 @@
     </div>
     <div id="resolution_content">
         <div class="main_counter">
-            <div class="settings_container" style="padding-bottom:130px">
+            <div class="settings_container" style="padding-top:0.5rem">
 
                 <div class="full_setting_container">
                     <div class="setting_container">
@@ -22,19 +22,27 @@
                         <div class="setting_input_container">
                             <select class="resolution_select" id="resolution_select" data-custom-select>
                                     <option value="Default">Default</option>
-                                    <option value="1440x1080">1440x1080(ipad)</option>
-                                    <option value="1920x1440">1920x1440(ipad)</option>
                                     <option value="768x432">768x432</option>
                                     <option value="960x540">960x540</option>
                                     <option value="1024x576">1024x576</option>
                                     <option value="1152x648">1152x648</option>
-                                    <option value="1280x800">1280x800(HD)</option>
+                                    <option value="1180x720">1180x720</option>
+                                    <option value="1280x720">1280x720 (HD)</option>
+                                    <option value="1280x800">1280x800 (HD Tablet)</option>
                                     <option value="1366x768">1366x768</option>
-                                    <option value="1440x1080">1440x1080(HD+)</option>
+                                    <option value="1440x720">1440x720</option>
+                                    <option value="1440x1080">1440x1080 (iPad)</option>
                                     <option value="1600x900">1600x900</option>
-                                    <option value="1920x1080">1920x1080</option>
-                                    <option value="2160x1080">2160x1080(FHD+)</option>
-                                    <option value="2560x1440">2560x1440</option>
+                                    <option value="1760x880">1760x880</option>
+                                    <option value="1920x1080">1920x1080 (FHD)</option>
+                                    <option value="1920x1440">1920x1440 (iPad Pro)</option>
+                                    <option value="2048x1536">2048x1536 (iPad)</option>
+                                    <option value="2160x1080">2160x1080 (FHD+)</option>
+                                    <option value="2280x1080">2280x1080</option>
+                                    <option value="2400x1080">2400x1080</option>
+                                    <option value="2560x1440">2560x1440 (2K)</option>
+                                    <option value="2732x2048">2732x2048 (iPad Pro)</option>
+                                    <option value="3840x2160">3840x2160 (4K)</option>
                                 </select>
                         </div>
                     </div>
@@ -57,33 +65,20 @@
                             <label style="display:block;font-size:0.75rem;color:#aaa;margin-bottom:4px" data-i18n="dpi">DPI</label>
                             <input type="number" lang="en" id="persp_dpi" class="editor-input" value="320" min="120" max="640" style="width:100%">
                         </div>
+                        <div style="width:100%;display:flex;gap:0.5rem;margin-top:4px">
+                            <a class="mou_btn apply_btn" onclick="apply_perspective_from_page()" style="flex:1">
+                                <span class="btn_text" data-i18n="apply_perspective">تطبيق المنظور</span>
+                            </a>
+                            <a class="mou_btn apply_btn" onclick="reset_perspective_from_page()" style="flex:1;background:var(--bg-dangr-color)">
+                                <span class="btn_text" data-i18n="reset_perspective">إعادة المنظور</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
             </div>
-
-            <div class="actions" style="flex-direction:column;gap:0.5rem;background:#0a0a0a;padding:0.75rem;padding-bottom:calc(0.75rem + env(safe-area-inset-bottom, 0));position:sticky;bottom:0;z-index:10">
-                <div style="display:flex;gap:0.5rem">
-                    <a class="mou_btn apply_btn" onclick="apply_perspective_from_page()" style="flex:1">
-                        <span class="btn_text" data-i18n="apply">تطبيق</span>
-                    </a>
-                    <a class="mou_btn apply_btn" onclick="apply_perspective_and_launch()" style="flex:1">
-                        <span class="btn_text" data-i18n="apply_and_launch">تطبيق وفتح اللعبة</span>
-                    </a>
-                </div>
-                <div style="display:flex;gap:0.5rem">
-                    <a class="mou_btn apply_btn" onclick="reset_perspective_from_page()" style="flex:1;background:var(--bg-dangr-color)">
-                        <span class="btn_text" data-i18n="close_perspective">إغلاق المنظور</span>
-                    </a>
-                    <a class="mou_btn apply_btn" onclick="reset_reselution()" style="flex:1;background:var(--bg-dangr-color)">
-                        <span class="btn_text" data-i18n="reset_resolution">Reset resolution</span>
-                    </a>
-                </div>
-            </div>
-
         </div>
     </div>
-</div>
 <script>
 function checkOverlayPermission() {
     var banner = document.getElementById('overlay_permission_banner');
@@ -124,21 +119,76 @@ function apply_perspective_and_launch() {
         mouscripts.applyResolution(w, h, dpi);
     }
 }
-$(document).on('click', '[data-openpopup="resolution_popup"]', function () {
-    var sel = document.getElementById('resolution_select');
-    if (sel) {
-        var val = sel.value;
+$('#resolution_select').on('change', function() {
+    console.log('change event on resolution_select');
+    updateFormFromResolution('change_event');
+});
+document.addEventListener('click', function(e) {
+    var opt = e.target.closest('.custom-option');
+    if (!opt) { return; }
+    var container = opt.closest('.custom-options');
+    if (!container) return;
+    var forId = container.getAttribute('data-for');
+    if (!forId) return;
+    var $sel = $('select[data-custom-id="' + forId + '"]');
+    if ($sel.attr('id') === 'resolution_select') {
+        console.log('capturing click on custom-option, data-value:', opt.getAttribute('data-value'));
+        var val = opt.getAttribute('data-value');
         if (val && val !== 'Default') {
             var parts = val.split('x');
             if (parts.length === 2) {
                 document.getElementById('persp_width').value = parts[0];
                 document.getElementById('persp_height').value = parts[1];
             }
+        } else {
+            fillDefaultResolution();
+        }
+    }
+}, true);
+$(document).on('click', '[data-openpopup="resolution_popup"]', function () {
+    var sel = document.getElementById('resolution_select');
+    if (sel && sel.value && sel.value !== 'Default') {
+        var parts = sel.value.split('x');
+        if (parts.length === 2) {
+            document.getElementById('persp_width').value = parts[0];
+            document.getElementById('persp_height').value = parts[1];
         }
     }
 });
+function updateFormFromResolution(src) {
+    console.log('updateFormFromResolution called from:', src || 'unknown');
+    var sel = document.getElementById('resolution_select');
+    if (!sel) { console.log('resolution_select NOT FOUND'); return; }
+    var val = sel.value;
+    console.log('resolution_select value:', val);
+    if (val && val !== 'Default') {
+        var parts = val.split('x');
+        if (parts.length === 2) {
+            document.getElementById('persp_width').value = parts[0];
+            document.getElementById('persp_height').value = parts[1];
+            console.log('set persp_width=' + parts[0] + ' persp_height=' + parts[1]);
+        } else {
+            console.log('split failed, parts:', parts);
+        }
+    } else {
+        fillDefaultResolution();
+    }
+}
+function fillDefaultResolution() {
+    if (typeof mouscripts !== "undefined") {
+        try {
+            var info = JSON.parse(mouscripts.getScreenResolution());
+            document.getElementById('persp_width').value = info.width;
+            document.getElementById('persp_height').value = info.height;
+        } catch(e) {}
+    }
+}
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) checkOverlayPermission();
 });
-setTimeout(checkOverlayPermission, 200);
+setTimeout(function() {
+    checkOverlayPermission();
+    console.log('initial updateFormFromResolution');
+    updateFormFromResolution('init');
+}, 200);
 </script>

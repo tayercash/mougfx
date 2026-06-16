@@ -90,7 +90,7 @@
 
 .indicator {
     position: absolute;
-    width: calc(100% / 5);
+    width: calc(100% / 4);
     height: 60px;
     bottom: 5px;
     /* background: #000; */

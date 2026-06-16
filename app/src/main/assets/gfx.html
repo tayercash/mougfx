@@ -1,7 +1,17 @@
 <div class="counterPage">
     <div class="main_counter">
-        <div class="settings_container">
+        <div class="actions" style="flex-direction:column;gap:0.5rem;background:#0a0a0a;padding:0.5rem 0.75rem;position:sticky;top:0;z-index:10">
+            <div style="display:flex;gap:0.5rem">
+                <a class="mou_btn apply_btn" onclick="apply_settings()" style="flex:1">
+                    <span class="btn_text" data-i18n="apply_settings">Apply Settings</span>
+                </a>
+                <a class="mou_btn apply_btn" onclick="apply_settings_and_launch()" style="flex:1">
+                    <span class="btn_text" data-i18n="apply_and_launch">Apply & Launch</span>
+                </a>
+            </div>
+        </div>
 
+        <div class="settings_container" style="padding-top:0.5rem">
             <div class="full_setting_container">
                 <div class="setting_container">
                     <div class="setting_data">
@@ -75,15 +85,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="actions" style="flex-direction:column;gap:0.5rem">
-            <a class="mou_btn apply_btn" onclick="apply_settings()">
-                <span class="btn_text" data-i18n="apply_settings">Apply Settings</span>
-            </a>
-            <a class="mou_btn apply_btn" onclick="apply_settings_and_launch()">
-                <span class="btn_text" data-i18n="apply_and_launch">Apply & Launch</span>
-            </a>
         </div>
 
     </div>

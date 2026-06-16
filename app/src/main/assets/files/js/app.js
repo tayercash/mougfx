@@ -25,12 +25,13 @@ var translations = {
         styles_desc: 'اختر فلتر الألوان المفضل',
         apply_perspective: 'تطبيق المنظور',
         reset_resolution: 'إعادة الدقة',
-        apply_settings: 'تطبيق الإعدادات',
+        apply_settings: 'تطبيق',
         apply: 'تطبيق',
         close_perspective: 'إغلاق المنظور',
         width: 'العرض',
         height: 'الارتفاع',
         dpi: 'DPI',
+        reset_perspective: 'إعادة المنظور',
         rate_app: 'تقييم التطبيق',
         share_app: 'مشاركة التطبيق',
         reloaded: 'تم إعادة التحميل',
@@ -42,8 +43,12 @@ var translations = {
         settings_version_desc: 'معلومات إصدار Mou GFX',
         settings_autoload: 'تحميل تلقائي',
         settings_autoload_desc: 'تحميل active.sav تلقائياً عند البدء',
-        settings_root_mode: 'وضع الروت',
-        settings_root_mode_desc: 'استخدام صلاحيات الروت (Magisk) للوصول للملفات',
+        settings_access_method: 'طريقة الوصول',
+        settings_access_method_desc: 'اختيار طريقة الوصول للملفات',
+        access_auto: 'تلقائي',
+        access_root: 'Root',
+        access_shizuku: 'Shizuku',
+        access_direct: 'مباشر',
         settings_launch_game: 'تشغيل اللعبة',
         settings_launch_game_desc: 'فتح PUBG Mobile مباشرة',
         settings_launch_btn: 'تشغيل',
@@ -56,10 +61,20 @@ var translations = {
         overlay_desc: 'يحتاج التطبيق صلاحية "الظهور فوق التطبيقات" لعرض لوحة المنظور العائمة. من فضلك فعّل الخاصية من الإعدادات.',
         open_overlay_settings: 'فتح الإعدادات',
         apply_and_launch: 'تطبيق وفتح اللعبة',
+        info_open: 'معلومات',
+        info_desc: 'معلومات التطبيق والتقييم',
+        info_tagline: 'تطبيق تعديل رسومات ببجي موبايل',
+        app_version_label: 'الإصدار',
         settings_countdown: 'مدة العداد',
         settings_countdown_desc: 'مدة العد التنازلي للمنظور (بالثواني)',
         settings_countdown_disable: 'إيقاف العداد',
         settings_countdown_disable_desc: 'إلغاء العد التنازلي التلقائي (إعادة يدوية)',
+        countdown_3s: '3 ثواني',
+        countdown_5s: '5 ثواني',
+        countdown_10s: '10 ثواني',
+        countdown_15s: '15 ثواني',
+        countdown_30s: '30 ثواني',
+        info_title: 'معلومات',
     },
     en: {
         nav_gfx: 'GFX',
@@ -83,12 +98,13 @@ var translations = {
         styles_desc: 'Choose your favorite color filter',
         apply_perspective: 'Apply Perspective',
         reset_resolution: 'Reset Resolution',
-        apply_settings: 'Apply Settings',
+        apply_settings: 'Apply',
         apply: 'Apply',
         close_perspective: 'Close Perspective',
         width: 'Width',
         height: 'Height',
         dpi: 'DPI',
+        reset_perspective: 'Reset Perspective',
         rate_app: 'Rate App',
         share_app: 'Share App',
         reloaded: 'Reloaded',
@@ -100,8 +116,12 @@ var translations = {
         settings_version_desc: 'Mou GFX version info',
         settings_autoload: 'Auto Load',
         settings_autoload_desc: 'Auto-load active.sav on start',
-        settings_root_mode: 'Root Mode',
-        settings_root_mode_desc: 'Use Root (Magisk) for file access',
+        settings_access_method: 'Access Method',
+        settings_access_method_desc: 'Choose file access method',
+        access_auto: 'Auto',
+        access_root: 'Root',
+        access_shizuku: 'Shizuku',
+        access_direct: 'Direct',
         settings_launch_game: 'Launch Game',
         settings_launch_game_desc: 'Open PUBG Mobile directly',
         settings_launch_btn: 'Launch',
@@ -114,10 +134,20 @@ var translations = {
         overlay_desc: 'The app needs "Draw over other apps" permission to show the floating perspective panel. Please enable it in Settings.',
         open_overlay_settings: 'Open Settings',
         apply_and_launch: 'Apply & Launch',
+        info_open: 'Info',
+        info_desc: 'App info and rate us',
+        info_tagline: 'PUBG Mobile graphics tweaker app',
+        app_version_label: 'Version',
         settings_countdown: 'Countdown Duration',
         settings_countdown_desc: 'Countdown duration for perspective reset (seconds)',
         settings_countdown_disable: 'Disable Countdown',
         settings_countdown_disable_desc: 'Turn off auto-reset countdown (manual only)',
+        countdown_3s: '3 seconds',
+        countdown_5s: '5 seconds',
+        countdown_10s: '10 seconds',
+        countdown_15s: '15 seconds',
+        countdown_30s: '30 seconds',
+        info_title: 'Info',
     }
 };
 
@@ -181,6 +211,14 @@ function switchLanguage(lang) {
     });
     fix_indicator_positon(false);
     apply_translations();
+    // Refresh all custom-select triggers with new translations
+    $('select[data-custom-select]').each(function () {
+        var $trigger = $(this).parent('.custom-select-wrapper').find('.custom-select-trigger');
+        if ($trigger.length) {
+            var $selOpt = $(this).find('option:selected');
+            $trigger.text($selOpt.length ? $selOpt.text() : $(this).find('option').first().text());
+        }
+    });
     // Update the language select value + custom trigger if settings page is loaded
     var $sel = $('#lang_select');
     if ($sel.length) {
@@ -525,9 +563,9 @@ function reset_reselution() {
 }
 
 function apply_perspective_from_popup() {
-    var w = parseInt(document.getElementById('persp_width').value);
-    var h = parseInt(document.getElementById('persp_height').value);
-    var dpi = parseInt(document.getElementById('persp_dpi').value);
+    var w = parseInt(document.getElementById('popup_persp_width').value);
+    var h = parseInt(document.getElementById('popup_persp_height').value);
+    var dpi = parseInt(document.getElementById('popup_persp_dpi').value);
     if (isNaN(w) || isNaN(h) || isNaN(dpi)) return;
     if (typeof mouscripts !== "undefined") {
         mouscripts.applyResolution(w, h, dpi);
@@ -549,9 +587,20 @@ $(document).on('click', '[data-openpopup="resolution_popup"]', function () {
         if (val && val !== 'Default') {
             var parts = val.split('x');
             if (parts.length === 2) {
-                document.getElementById('persp_width').value = parts[0];
-                document.getElementById('persp_height').value = parts[1];
+                document.getElementById('popup_persp_width').value = parts[0];
+                document.getElementById('popup_persp_height').value = parts[1];
             }
         }
     }
 });
+
+function RateApp() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.open_external_link("https://play.google.com/store/apps/details?id=" + mouscripts.GetPackageName());
+    }
+}
+function ShareApp() {
+    if (typeof mouscripts !== "undefined") {
+        mouscripts.share_text_to_apps(__('rate_app'), __('settings_share_text'));
+    }
+}
